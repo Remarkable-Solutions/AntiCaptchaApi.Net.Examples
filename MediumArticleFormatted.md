@@ -14,15 +14,12 @@ Before diving into the code, let's understand what we're dealing with:
 
 ### Common CAPTCHA Types
 
-| CAPTCHA Type | Description | Difficulty Level |
-|--------------|-------------|-----------------|
-| Text-based | Distorted text that users must type | Low to Medium |
-| Image-based | Identifying objects in images | Medium |
-| reCAPTCHA v2 | "I'm not a robot" checkbox with potential image challenges | Medium |
-| reCAPTCHA v3 | Invisible, score-based assessment | High |
-| hCaptcha | Similar to reCAPTCHA with various challenges | Medium to High |
-| FunCaptcha | Interactive puzzle-based challenges | High |
-| GeeTest | Slider puzzles and other interactive challenges | High |
+*   **Text-based:** Distorted text that users must type (Low to Medium difficulty)
+*   **Image-based:** Identifying objects in images (Medium difficulty)
+*   **reCAPTCHA v2:** "I'm not a robot" checkbox with potential image challenges (Medium difficulty)
+*   **reCAPTCHA v3:** Invisible, score-based assessment (High difficulty)
+*   **FunCaptcha:** Interactive puzzle-based challenges (High difficulty)
+*   **GeeTest:** Slider puzzles and other interactive challenges (High difficulty)
 
 Anti-Captcha and similar services employ a combination of machine learning algorithms and human workers to solve these challenges, ensuring high accuracy while maintaining reasonable solving times.
 
@@ -304,17 +301,6 @@ var request = new FunCaptchaProxylessRequest
 var result = await client.SolveCaptchaAsync<FunCaptchaSolution>(request);
 ```
 
-### hCaptcha
-
-```csharp
-var request = new HCaptchaProxylessRequest
-{
-    WebsiteUrl = "https://example.com",
-    WebsiteKey = "your-site-key"
-};
-
-var result = await client.SolveCaptchaAsync<HCaptchaSolution>(request);
-```
 
 ### GeeTest
 
