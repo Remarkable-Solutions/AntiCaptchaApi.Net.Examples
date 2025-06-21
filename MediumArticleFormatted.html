@@ -1,0 +1,626 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome file</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h1 id="breaking-through-the-captcha-barrier-a-developers-guide-to-anticaptchaapi.net">Breaking Through the CAPTCHA Barrier: A Developer’s Guide to <a href="http://AntiCaptchaApi.Net">AntiCaptchaApi.Net</a></h1>
+<p><img src="https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?ixlib=rb-1.2.1&amp;auto=format&amp;fit=crop&amp;w=1350&amp;q=80" alt="Header Image showing code and CAPTCHA interface"></p>
+<p>In today’s digital landscape, CAPTCHAs are everywhere – those puzzles asking you to identify traffic lights, crosswalks, or decipher distorted text. While they’re essential for preventing spam and abuse, they can be significant roadblocks for legitimate automation tasks.</p>
+<p>Whether you’re building automated testing frameworks, developing data collection tools, creating accessibility solutions, or implementing business process automation, you’ve likely encountered the CAPTCHA challenge. This is where <strong><a href="http://AntiCaptchaApi.Net">AntiCaptchaApi.Net</a></strong> comes in – a powerful .NET library that provides a clean, intuitive interface to the Anti-Captcha service.</p>
+<p>In this comprehensive guide, I’ll walk you through everything you need to know to implement CAPTCHA solving in your .NET applications, with practical examples and best practices.</p>
+<h2 id="understanding-captchas">Understanding CAPTCHAs</h2>
+<p>Before diving into the code, let’s understand what we’re dealing with:</p>
+<h3 id="common-captcha-types">Common CAPTCHA Types</h3>
+
+<table>
+<thead>
+<tr>
+<th>CAPTCHA Type</th>
+<th>Description</th>
+<th>Difficulty Level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Text-based</td>
+<td>Distorted text that users must type</td>
+<td>Low to Medium</td>
+</tr>
+<tr>
+<td>Image-based</td>
+<td>Identifying objects in images</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>reCAPTCHA v2</td>
+<td>“I’m not a robot” checkbox with potential image challenges</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>reCAPTCHA v3</td>
+<td>Invisible, score-based assessment</td>
+<td>High</td>
+</tr>
+<tr>
+<td>hCaptcha</td>
+<td>Similar to reCAPTCHA with various challenges</td>
+<td>Medium to High</td>
+</tr>
+<tr>
+<td>FunCaptcha</td>
+<td>Interactive puzzle-based challenges</td>
+<td>High</td>
+</tr>
+<tr>
+<td>GeeTest</td>
+<td>Slider puzzles and other interactive challenges</td>
+<td>High</td>
+</tr>
+</tbody>
+</table><p>Anti-Captcha and similar services employ a combination of machine learning algorithms and human workers to solve these challenges, ensuring high accuracy while maintaining reasonable solving times.</p>
+<h2 id="getting-started-with-anticaptchaapi.net">Getting Started with <a href="http://AntiCaptchaApi.Net">AntiCaptchaApi.Net</a></h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<p>Before we begin, you’ll need:</p>
+<ul>
+<li>A .NET project (targeting .NET Standard 2.1 or higher)</li>
+<li>An Anti-Captcha account and API key (<a href="https://anti-captcha.com">sign up here</a>)</li>
+<li>Basic familiarity with C# and async/await patterns</li>
+</ul>
+<h3 id="installation">Installation</h3>
+<p>Adding <a href="http://AntiCaptchaApi.Net">AntiCaptchaApi.Net</a> to your project is straightforward with NuGet:</p>
+<pre class=" language-bash"><code class="prism  language-bash">dotnet add package AntiCaptchaApi.Net
+</code></pre>
+<p>Or via the Package Manager Console:</p>
+<pre class=" language-powershell"><code class="prism  language-powershell">Install<span class="token operator">-</span>Package AntiCaptchaApi<span class="token punctuation">.</span>Net
+</code></pre>
+<h3 id="library-architecture">Library Architecture</h3>
+<p><a href="http://AntiCaptchaApi.Net">AntiCaptchaApi.Net</a> follows a clean, modular architecture:</p>
+<pre><code>AntiCaptchaApi.Net
+├── AnticaptchaClient - Main entry point for API interactions
+├── Requests - Specialized request classes for different CAPTCHA types
+├── Models
+│   └── Solutions - Strongly-typed solution classes
+└── Responses - API response handling
+</code></pre>
+<p>This design makes the library both powerful and flexible, accommodating various CAPTCHA types and integration scenarios.</p>
+<h2 id="basic-implementation-solving-recaptcha-v2">Basic Implementation: Solving reCAPTCHA v2</h2>
+<p>Let’s start with a simple example: solving a Google reCAPTCHA v2 challenge.</p>
+<h3 id="step-1-initialize-the-client">Step 1: Initialize the Client</h3>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token comment">// Create a new AnticaptchaClient with your API key</span>
+<span class="token keyword">var</span> client <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">AnticaptchaClient</span><span class="token punctuation">(</span><span class="token string">"YOUR_API_KEY_HERE"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Optional: Configure client behavior</span>
+client<span class="token punctuation">.</span><span class="token function">Configure</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">ClientConfig</span>
+<span class="token punctuation">{</span>
+    SolveAsyncRetries <span class="token operator">=</span> <span class="token number">3</span><span class="token punctuation">,</span>
+    MaxWaitForTaskResultTimeMs <span class="token operator">=</span> <span class="token number">120000</span><span class="token punctuation">,</span> <span class="token comment">// 2 minutes</span>
+    DelayTimeBetweenCheckingTaskResultMs <span class="token operator">=</span> <span class="token number">1000</span> <span class="token comment">// 1 second</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h3 id="step-2-create-a-request">Step 2: Create a Request</h3>
+<p>For reCAPTCHA v2, you’ll need the website URL and site key:</p>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token keyword">var</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">RecaptchaV2ProxylessRequest</span>
+<span class="token punctuation">{</span>
+    WebsiteUrl <span class="token operator">=</span> <span class="token string">"https://example.com/page-with-captcha"</span><span class="token punctuation">,</span>
+    WebsiteKey <span class="token operator">=</span> <span class="token string">"6LcCfkcrAAAAABjY1ja80Q_xa8zMZ-E7O5Z37N9D"</span><span class="token punctuation">,</span> <span class="token comment">// The site key from the target website</span>
+    IsInvisible <span class="token operator">=</span> <span class="token keyword">false</span> <span class="token comment">// Set to true for invisible reCAPTCHA</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre>
+<blockquote>
+<p><strong>Tip</strong>: You can find the site key in the page source by searching for “sitekey” or by inspecting the reCAPTCHA element.</p>
+</blockquote>
+<h3 id="step-3-solve-the-captcha">Step 3: Solve the CAPTCHA</h3>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token comment">// Asynchronously solve the CAPTCHA</span>
+<span class="token keyword">var</span> result <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token generic-method function">SolveCaptchaAsync<span class="token punctuation">&lt;</span>RecaptchaSolution<span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Check if solving was successful</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span>result<span class="token punctuation">.</span>IsSuccess<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    <span class="token comment">// Use the solution token (g-recaptcha-response)</span>
+    <span class="token keyword">string</span> token <span class="token operator">=</span> result<span class="token punctuation">.</span>Solution<span class="token punctuation">.</span>GRecaptchaResponse<span class="token punctuation">;</span>
+    Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span>$<span class="token string">"CAPTCHA solved! Token: {token.Substring(0, 20)}..."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+    <span class="token comment">// This token can now be used in your form submission</span>
+<span class="token punctuation">}</span>
+<span class="token keyword">else</span>
+<span class="token punctuation">{</span>
+    Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span>$<span class="token string">"Error: {result.ErrorDescription}"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="step-4-use-the-solution">Step 4: Use the Solution</h3>
+<p>Once you have the solution token, you can use it in your HTTP requests:</p>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token comment">// Create an HTTP client</span>
+<span class="token keyword">using</span> <span class="token keyword">var</span> httpClient <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HttpClient</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Prepare form data</span>
+<span class="token keyword">var</span> formData <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Dictionary</span><span class="token operator">&lt;</span><span class="token keyword">string</span><span class="token punctuation">,</span> <span class="token keyword">string</span><span class="token operator">&gt;</span>
+<span class="token punctuation">{</span>
+    <span class="token punctuation">[</span><span class="token string">"username"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"testuser"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">[</span><span class="token string">"password"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">"password123"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">[</span><span class="token string">"g-recaptcha-response"</span><span class="token punctuation">]</span> <span class="token operator">=</span> result<span class="token punctuation">.</span>Solution<span class="token punctuation">.</span>GRecaptchaResponse
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Submit the form</span>
+<span class="token keyword">var</span> content <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FormUrlEncodedContent</span><span class="token punctuation">(</span>formData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">var</span> response <span class="token operator">=</span> <span class="token keyword">await</span> httpClient<span class="token punctuation">.</span><span class="token function">PostAsync</span><span class="token punctuation">(</span><span class="token string">"https://example.com/login"</span><span class="token punctuation">,</span> content<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Process the response</span>
+<span class="token keyword">var</span> responseContent <span class="token operator">=</span> <span class="token keyword">await</span> response<span class="token punctuation">.</span>Content<span class="token punctuation">.</span><span class="token function">ReadAsStringAsync</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span>$<span class="token string">"Response: {responseContent}"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="complete-example-solving-recaptcha-v2-on-captchas.info">Complete Example: Solving reCAPTCHA v2 on <a href="http://captchas.info">captchas.info</a></h2>
+<p>Let’s walk through a complete example of solving a reCAPTCHA v2 on our testing website, <a href="https://captchas.info">captchas.info</a>:</p>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token keyword">using</span> System<span class="token punctuation">;</span>
+<span class="token keyword">using</span> System<span class="token punctuation">.</span>Collections<span class="token punctuation">.</span>Generic<span class="token punctuation">;</span>
+<span class="token keyword">using</span> System<span class="token punctuation">.</span>Net<span class="token punctuation">.</span>Http<span class="token punctuation">;</span>
+<span class="token keyword">using</span> System<span class="token punctuation">.</span>Threading<span class="token punctuation">.</span>Tasks<span class="token punctuation">;</span>
+<span class="token keyword">using</span> AntiCaptchaApi<span class="token punctuation">.</span>Net<span class="token punctuation">;</span>
+<span class="token keyword">using</span> AntiCaptchaApi<span class="token punctuation">.</span>Net<span class="token punctuation">.</span>Models<span class="token punctuation">;</span>
+<span class="token keyword">using</span> AntiCaptchaApi<span class="token punctuation">.</span>Net<span class="token punctuation">.</span>Models<span class="token punctuation">.</span>Solutions<span class="token punctuation">;</span>
+<span class="token keyword">using</span> AntiCaptchaApi<span class="token punctuation">.</span>Net<span class="token punctuation">.</span>Requests<span class="token punctuation">;</span>
+<span class="token keyword">using</span> AntiCaptchaApi<span class="token punctuation">.</span>Net<span class="token punctuation">.</span>Enums<span class="token punctuation">;</span>
+<span class="token keyword">using</span> AntiCaptchaApi<span class="token punctuation">.</span>Net<span class="token punctuation">.</span>Responses<span class="token punctuation">;</span>
+<span class="token keyword">using</span> Newtonsoft<span class="token punctuation">.</span>Json<span class="token punctuation">;</span>
+
+<span class="token comment">// Replace with your actual Anti-Captcha API key</span>
+<span class="token keyword">const</span> <span class="token keyword">string</span> ANTI_CAPTCHA_API_KEY <span class="token operator">=</span> <span class="token string">"YOUR_API_KEY_HERE"</span><span class="token punctuation">;</span>
+
+<span class="token keyword">await</span> <span class="token function">SolveRecaptchaExampleAsync</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">async</span> Task <span class="token function">SolveRecaptchaExampleAsync</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span><span class="token string">"Starting reCAPTCHA v2 example..."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+    <span class="token keyword">try</span>
+    <span class="token punctuation">{</span>
+        <span class="token comment">// Initialize the AntiCaptcha client</span>
+        <span class="token keyword">var</span> client <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">AnticaptchaClient</span><span class="token punctuation">(</span>ANTI_CAPTCHA_API_KEY<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        
+        <span class="token comment">// Configure client behavior (optional)</span>
+        client<span class="token punctuation">.</span><span class="token function">Configure</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">ClientConfig</span>
+        <span class="token punctuation">{</span>
+            SolveAsyncRetries <span class="token operator">=</span> <span class="token number">3</span><span class="token punctuation">,</span>
+            MaxWaitForTaskResultTimeMs <span class="token operator">=</span> <span class="token number">120000</span><span class="token punctuation">,</span> <span class="token comment">// 2 minutes</span>
+            DelayTimeBetweenCheckingTaskResultMs <span class="token operator">=</span> <span class="token number">1000</span> <span class="token comment">// 1 second</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        
+        <span class="token comment">// Get your account balance (optional)</span>
+        <span class="token keyword">var</span> balanceResponse <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token function">GetBalanceAsync</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span>$<span class="token string">"Account balance: ${balanceResponse.Balance}"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        
+        <span class="token comment">// Create a request to solve reCAPTCHA v2 on captchas.info</span>
+        <span class="token comment">// Note: captchas.info is our own testing website created specifically for this purpose</span>
+        <span class="token keyword">var</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">RecaptchaV2ProxylessRequest</span>
+        <span class="token punctuation">{</span>
+            WebsiteUrl <span class="token operator">=</span> <span class="token string">"https://captchas.info/captchas/recaptcha-v2-standard"</span><span class="token punctuation">,</span>
+            WebsiteKey <span class="token operator">=</span> <span class="token string">"6LcCfkcrAAAAABjY1ja80Q_xa8zMZ-E7O5Z37N9D"</span><span class="token punctuation">,</span>
+            IsInvisible <span class="token operator">=</span> <span class="token keyword">false</span>
+        <span class="token punctuation">}</span><span class="token punctuation">;</span>
+        
+        Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span><span class="token string">"Solving reCAPTCHA..."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        
+        <span class="token comment">// Solve the CAPTCHA</span>
+        <span class="token keyword">var</span> result <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token generic-method function">SolveCaptchaAsync<span class="token punctuation">&lt;</span>RecaptchaSolution<span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        
+        <span class="token comment">// Check for success</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>result <span class="token keyword">is</span> <span class="token punctuation">{</span> ErrorId<span class="token punctuation">:</span> <span class="token number">0</span> or <span class="token keyword">null</span><span class="token punctuation">,</span> Solution<span class="token punctuation">:</span> not <span class="token keyword">null</span> <span class="token punctuation">}</span><span class="token punctuation">)</span>
+        <span class="token punctuation">{</span>
+            Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span><span class="token string">"CAPTCHA solved successfully!"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            
+            <span class="token comment">// Get a preview of the token</span>
+            <span class="token keyword">var</span> tokenPreview <span class="token operator">=</span> result<span class="token punctuation">.</span>Solution<span class="token punctuation">.</span>GRecaptchaResponse<span class="token punctuation">[</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token number">20</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+            Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span>$<span class="token string">"Solution token: {tokenPreview}..."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            
+            <span class="token comment">// Use the solution token to submit a form</span>
+            <span class="token keyword">using</span> <span class="token keyword">var</span> httpClient <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HttpClient</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            
+            <span class="token comment">// Prepare form data</span>
+            <span class="token keyword">var</span> formData <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Dictionary</span><span class="token operator">&lt;</span><span class="token keyword">string</span><span class="token punctuation">,</span> <span class="token keyword">string</span><span class="token operator">&gt;</span>
+            <span class="token punctuation">{</span>
+                <span class="token punctuation">[</span><span class="token string">"g-recaptcha-response"</span><span class="token punctuation">]</span> <span class="token operator">=</span> result<span class="token punctuation">.</span>Solution<span class="token punctuation">.</span>GRecaptchaResponse
+            <span class="token punctuation">}</span><span class="token punctuation">;</span>
+            
+            <span class="token comment">// Submit the form</span>
+            <span class="token keyword">var</span> content <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">StringContent</span><span class="token punctuation">(</span>JsonConvert<span class="token punctuation">.</span><span class="token function">SerializeObject</span><span class="token punctuation">(</span>formData<span class="token punctuation">)</span><span class="token punctuation">,</span> System<span class="token punctuation">.</span>Text<span class="token punctuation">.</span>Encoding<span class="token punctuation">.</span>UTF8<span class="token punctuation">,</span> <span class="token string">"application/json"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">var</span> response <span class="token operator">=</span> <span class="token keyword">await</span> httpClient<span class="token punctuation">.</span><span class="token function">PostAsync</span><span class="token punctuation">(</span>
+                <span class="token string">"https://captchasinfoapi-production.up.railway.app/api/captcha/verify-recaptcha-v2-standard"</span><span class="token punctuation">,</span>
+                content<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            
+            <span class="token comment">// Process the response</span>
+            <span class="token keyword">var</span> responseContent <span class="token operator">=</span> <span class="token keyword">await</span> response<span class="token punctuation">.</span>Content<span class="token punctuation">.</span><span class="token function">ReadAsStringAsync</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span>$<span class="token string">"Verification response: {responseContent}"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            
+            <span class="token comment">// Report correct solution (optional but helpful)</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>result<span class="token punctuation">.</span>CreateTaskResponse<span class="token operator">?</span><span class="token punctuation">.</span>TaskId <span class="token keyword">is</span> not <span class="token keyword">null</span><span class="token punctuation">)</span>
+            <span class="token punctuation">{</span>
+                <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token function">ReportTaskOutcomeAsync</span><span class="token punctuation">(</span>result<span class="token punctuation">.</span>CreateTaskResponse<span class="token punctuation">.</span>TaskId<span class="token punctuation">.</span>Value<span class="token punctuation">,</span> ReportOutcome<span class="token punctuation">.</span>CorrectRecaptcha<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span><span class="token string">"Reported solution as correct"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">else</span>
+        <span class="token punctuation">{</span>
+            <span class="token comment">// Handle error</span>
+            <span class="token keyword">var</span> errorDescription <span class="token operator">=</span> result<span class="token operator">?</span><span class="token punctuation">.</span>ErrorDescription <span class="token operator">?</span><span class="token operator">?</span> <span class="token string">"Unknown error"</span><span class="token punctuation">;</span>
+            Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span>$<span class="token string">"Failed to solve CAPTCHA: {errorDescription}"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> ex<span class="token punctuation">)</span>
+    <span class="token punctuation">{</span>
+        Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span>$<span class="token string">"An error occurred: {ex.Message}"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span>ex<span class="token punctuation">.</span>StackTrace<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    
+    Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span><span class="token string">"Example completed"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span><span class="token string">"Press any key to exit..."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    Console<span class="token punctuation">.</span><span class="token function">ReadKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<blockquote>
+<p><strong>Important Note</strong>: In the example above, we’re using <a href="https://captchas.info">captchas.info</a>, which is our own website specifically created for testing CAPTCHA solutions. It provides various types of CAPTCHAs in a controlled environment, making it perfect for demonstrating how <a href="http://AntiCaptchaApi.Net">AntiCaptchaApi.Net</a> works. This site is not affiliated with any CAPTCHA provider and is solely intended for educational and testing purposes.</p>
+</blockquote>
+<h2 id="handling-different-captcha-types">Handling Different CAPTCHA Types</h2>
+<p><a href="http://AntiCaptchaApi.Net">AntiCaptchaApi.Net</a> supports various CAPTCHA types, each with its own request class and solution type.</p>
+<h3 id="image-to-text-captcha">Image-to-Text CAPTCHA</h3>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token keyword">var</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ImageToTextRequest</span>
+<span class="token punctuation">{</span>
+    Body <span class="token operator">=</span> Convert<span class="token punctuation">.</span><span class="token function">ToBase64String</span><span class="token punctuation">(</span>File<span class="token punctuation">.</span><span class="token function">ReadAllBytes</span><span class="token punctuation">(</span><span class="token string">"captcha.jpg"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+    Phrase <span class="token operator">=</span> <span class="token keyword">false</span><span class="token punctuation">,</span> <span class="token comment">// Set to true if the CAPTCHA contains a phrase</span>
+    Case <span class="token operator">=</span> <span class="token keyword">true</span><span class="token punctuation">,</span>    <span class="token comment">// Set to true if the CAPTCHA is case-sensitive</span>
+    Numeric <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span>    <span class="token comment">// 0 = any, 1 = only numbers, 2 = only letters</span>
+    Math <span class="token operator">=</span> <span class="token keyword">false</span>    <span class="token comment">// Set to true if it's a math equation</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">var</span> result <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token generic-method function">SolveCaptchaAsync<span class="token punctuation">&lt;</span>ImageToTextSolution<span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span>$<span class="token string">"Text solution: {result.Solution.Text}"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h3 id="recaptcha-v3">reCAPTCHA v3</h3>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token keyword">var</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">RecaptchaV3Request</span>
+<span class="token punctuation">{</span>
+    WebsiteUrl <span class="token operator">=</span> <span class="token string">"https://example.com"</span><span class="token punctuation">,</span>
+    WebsiteKey <span class="token operator">=</span> <span class="token string">"your-site-key"</span><span class="token punctuation">,</span>
+    MinScore <span class="token operator">=</span> <span class="token number">0.7</span><span class="token punctuation">,</span>     <span class="token comment">// Minimum score to accept (0.0 to 1.0)</span>
+    PageAction <span class="token operator">=</span> <span class="token string">"login"</span> <span class="token comment">// The action name</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">var</span> result <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token generic-method function">SolveCaptchaAsync<span class="token punctuation">&lt;</span>RecaptchaSolution<span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h3 id="funcaptcha-arkose-labs">FunCaptcha (Arkose Labs)</h3>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token keyword">var</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FunCaptchaProxylessRequest</span>
+<span class="token punctuation">{</span>
+    WebsiteUrl <span class="token operator">=</span> <span class="token string">"https://example.com"</span><span class="token punctuation">,</span>
+    WebsitePublicKey <span class="token operator">=</span> <span class="token string">"your-public-key"</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">var</span> result <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token generic-method function">SolveCaptchaAsync<span class="token punctuation">&lt;</span>FunCaptchaSolution<span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h3 id="hcaptcha">hCaptcha</h3>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token keyword">var</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HCaptchaProxylessRequest</span>
+<span class="token punctuation">{</span>
+    WebsiteUrl <span class="token operator">=</span> <span class="token string">"https://example.com"</span><span class="token punctuation">,</span>
+    WebsiteKey <span class="token operator">=</span> <span class="token string">"your-site-key"</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">var</span> result <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token generic-method function">SolveCaptchaAsync<span class="token punctuation">&lt;</span>HCaptchaSolution<span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h3 id="geetest">GeeTest</h3>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token keyword">var</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">GeeTestV3ProxylessRequest</span>
+<span class="token punctuation">{</span>
+    WebsiteUrl <span class="token operator">=</span> <span class="token string">"https://example.com"</span><span class="token punctuation">,</span>
+    Gt <span class="token operator">=</span> <span class="token string">"gt-value"</span><span class="token punctuation">,</span>
+    Challenge <span class="token operator">=</span> <span class="token string">"challenge-value"</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+<span class="token keyword">var</span> result <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token generic-method function">SolveCaptchaAsync<span class="token punctuation">&lt;</span>GeeTestSolution<span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2 id="using-with-dependency-injection">Using with Dependency Injection</h2>
+<p><a href="http://AntiCaptchaApi.Net">AntiCaptchaApi.Net</a> supports dependency injection out of the box:</p>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token comment">// In your startup.cs or program.cs</span>
+services<span class="token punctuation">.</span><span class="token function">AddAnticaptcha</span><span class="token punctuation">(</span>clientKey<span class="token punctuation">:</span> <span class="token string">"YOUR_API_KEY_HERE"</span><span class="token punctuation">,</span> options <span class="token operator">=</span><span class="token operator">&gt;</span>
+<span class="token punctuation">{</span>
+    options<span class="token punctuation">.</span>SolveAsyncRetries <span class="token operator">=</span> <span class="token number">3</span><span class="token punctuation">;</span>
+    options<span class="token punctuation">.</span>MaxWaitForTaskResultTimeMs <span class="token operator">=</span> <span class="token number">120000</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// In your service class</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">CaptchaSolverService</span>
+<span class="token punctuation">{</span>
+    <span class="token keyword">private</span> <span class="token keyword">readonly</span> IAnticaptchaClient _client<span class="token punctuation">;</span>
+    
+    <span class="token keyword">public</span> <span class="token function">CaptchaSolverService</span><span class="token punctuation">(</span>IAnticaptchaClient client<span class="token punctuation">)</span>
+    <span class="token punctuation">{</span>
+        _client <span class="token operator">=</span> client<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    
+    <span class="token keyword">public</span> <span class="token keyword">async</span> Task<span class="token operator">&lt;</span><span class="token keyword">string</span><span class="token operator">&gt;</span> <span class="token function">SolveRecaptchaAsync</span><span class="token punctuation">(</span><span class="token keyword">string</span> websiteUrl<span class="token punctuation">,</span> <span class="token keyword">string</span> siteKey<span class="token punctuation">)</span>
+    <span class="token punctuation">{</span>
+        <span class="token keyword">var</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">RecaptchaV2ProxylessRequest</span>
+        <span class="token punctuation">{</span>
+            WebsiteUrl <span class="token operator">=</span> websiteUrl<span class="token punctuation">,</span>
+            WebsiteKey <span class="token operator">=</span> siteKey
+        <span class="token punctuation">}</span><span class="token punctuation">;</span>
+        
+        <span class="token keyword">var</span> result <span class="token operator">=</span> <span class="token keyword">await</span> _client<span class="token punctuation">.</span><span class="token generic-method function">SolveCaptchaAsync<span class="token punctuation">&lt;</span>RecaptchaSolution<span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>result<span class="token punctuation">.</span>IsSuccess<span class="token punctuation">)</span>
+        <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> result<span class="token punctuation">.</span>Solution<span class="token punctuation">.</span>GRecaptchaResponse<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        
+        <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Exception</span><span class="token punctuation">(</span>$<span class="token string">"Failed to solve CAPTCHA: {result.ErrorDescription}"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="best-practices">Best Practices</h2>
+<p>To get the most out of <a href="http://AntiCaptchaApi.Net">AntiCaptchaApi.Net</a>, follow these best practices:</p>
+<h3 id="implement-proper-error-handling">1. Implement Proper Error Handling</h3>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token keyword">try</span>
+<span class="token punctuation">{</span>
+    <span class="token keyword">var</span> result <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token generic-method function">SolveCaptchaAsync<span class="token punctuation">&lt;</span>RecaptchaSolution<span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>result<span class="token punctuation">.</span>IsSuccess<span class="token punctuation">)</span>
+    <span class="token punctuation">{</span>
+        <span class="token comment">// Use the solution</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">else</span>
+    <span class="token punctuation">{</span>
+        <span class="token comment">// Handle specific error codes</span>
+        <span class="token keyword">switch</span> <span class="token punctuation">(</span>result<span class="token punctuation">.</span>ErrorCode<span class="token punctuation">)</span>
+        <span class="token punctuation">{</span>
+            <span class="token keyword">case</span> <span class="token string">"ERROR_NO_SLOT_AVAILABLE"</span><span class="token punctuation">:</span>
+                Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span><span class="token string">"Anti-Captcha is busy, try again later"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">break</span><span class="token punctuation">;</span>
+            <span class="token keyword">case</span> <span class="token string">"ERROR_ZERO_BALANCE"</span><span class="token punctuation">:</span>
+                Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span><span class="token string">"Your account balance is empty"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">break</span><span class="token punctuation">;</span>
+            <span class="token keyword">default</span><span class="token punctuation">:</span>
+                Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span>$<span class="token string">"Error: {result.ErrorDescription}"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">break</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+<span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span> ex<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span>$<span class="token string">"Exception: {ex.Message}"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="implement-retry-logic">2. Implement Retry Logic</h3>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token keyword">int</span> maxRetries <span class="token operator">=</span> <span class="token number">3</span><span class="token punctuation">;</span>
+<span class="token keyword">int</span> retryCount <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token keyword">bool</span> success <span class="token operator">=</span> <span class="token keyword">false</span><span class="token punctuation">;</span>
+
+<span class="token keyword">while</span> <span class="token punctuation">(</span>retryCount <span class="token operator">&lt;</span> maxRetries <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>success<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    <span class="token keyword">try</span>
+    <span class="token punctuation">{</span>
+        <span class="token keyword">var</span> result <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token generic-method function">SolveCaptchaAsync<span class="token punctuation">&lt;</span>RecaptchaSolution<span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>result<span class="token punctuation">.</span>IsSuccess<span class="token punctuation">)</span>
+        <span class="token punctuation">{</span>
+            <span class="token comment">// Use the solution</span>
+            success <span class="token operator">=</span> <span class="token keyword">true</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>result<span class="token punctuation">.</span>ErrorCode <span class="token operator">==</span> <span class="token string">"ERROR_NO_SLOT_AVAILABLE"</span><span class="token punctuation">)</span>
+        <span class="token punctuation">{</span>
+            <span class="token comment">// Retry with exponential backoff</span>
+            retryCount<span class="token operator">++</span><span class="token punctuation">;</span>
+            <span class="token keyword">await</span> Task<span class="token punctuation">.</span><span class="token function">Delay</span><span class="token punctuation">(</span><span class="token number">1000</span> <span class="token operator">*</span> <span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span>Math<span class="token punctuation">.</span><span class="token function">Pow</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">,</span> retryCount<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        <span class="token keyword">else</span>
+        <span class="token punctuation">{</span>
+            <span class="token comment">// Don't retry for other errors</span>
+            <span class="token keyword">break</span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">Exception</span><span class="token punctuation">)</span>
+    <span class="token punctuation">{</span>
+        retryCount<span class="token operator">++</span><span class="token punctuation">;</span>
+        <span class="token keyword">await</span> Task<span class="token punctuation">.</span><span class="token function">Delay</span><span class="token punctuation">(</span><span class="token number">1000</span> <span class="token operator">*</span> retryCount<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="cache-tokens-when-possible">3. Cache Tokens When Possible</h3>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token comment">// Simple token cache</span>
+<span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">readonly</span> Dictionary<span class="token operator">&lt;</span><span class="token keyword">string</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token keyword">string</span> Token<span class="token punctuation">,</span> DateTime Expiry<span class="token punctuation">)</span><span class="token operator">&gt;</span> _tokenCache <span class="token operator">=</span> <span class="token keyword">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword">public</span> <span class="token keyword">async</span> Task<span class="token operator">&lt;</span><span class="token keyword">string</span><span class="token operator">&gt;</span> <span class="token function">GetCaptchaTokenAsync</span><span class="token punctuation">(</span><span class="token keyword">string</span> websiteUrl<span class="token punctuation">,</span> <span class="token keyword">string</span> siteKey<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    <span class="token keyword">string</span> cacheKey <span class="token operator">=</span> $<span class="token string">"{websiteUrl}:{siteKey}"</span><span class="token punctuation">;</span>
+    
+    <span class="token comment">// Check cache first</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>_tokenCache<span class="token punctuation">.</span><span class="token function">TryGetValue</span><span class="token punctuation">(</span>cacheKey<span class="token punctuation">,</span> <span class="token keyword">out</span> <span class="token keyword">var</span> cachedValue<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">{</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>cachedValue<span class="token punctuation">.</span>Expiry <span class="token operator">&gt;</span> DateTime<span class="token punctuation">.</span>UtcNow<span class="token punctuation">)</span>
+        <span class="token punctuation">{</span>
+            <span class="token keyword">return</span> cachedValue<span class="token punctuation">.</span>Token<span class="token punctuation">;</span>
+        <span class="token punctuation">}</span>
+        
+        <span class="token comment">// Remove expired token</span>
+        _tokenCache<span class="token punctuation">.</span><span class="token function">Remove</span><span class="token punctuation">(</span>cacheKey<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    
+    <span class="token comment">// Solve new CAPTCHA</span>
+    <span class="token keyword">var</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">RecaptchaV2ProxylessRequest</span>
+    <span class="token punctuation">{</span>
+        WebsiteUrl <span class="token operator">=</span> websiteUrl<span class="token punctuation">,</span>
+        WebsiteKey <span class="token operator">=</span> siteKey
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    
+    <span class="token keyword">var</span> result <span class="token operator">=</span> <span class="token keyword">await</span> _client<span class="token punctuation">.</span><span class="token generic-method function">SolveCaptchaAsync<span class="token punctuation">&lt;</span>RecaptchaSolution<span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>result<span class="token punctuation">.</span>IsSuccess<span class="token punctuation">)</span>
+    <span class="token punctuation">{</span>
+        <span class="token comment">// Cache token for 110 seconds (reCAPTCHA tokens typically last 2 minutes)</span>
+        _tokenCache<span class="token punctuation">[</span>cacheKey<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">(</span>result<span class="token punctuation">.</span>Solution<span class="token punctuation">.</span>GRecaptchaResponse<span class="token punctuation">,</span> DateTime<span class="token punctuation">.</span>UtcNow<span class="token punctuation">.</span><span class="token function">AddSeconds</span><span class="token punctuation">(</span><span class="token number">110</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> result<span class="token punctuation">.</span>Solution<span class="token punctuation">.</span>GRecaptchaResponse<span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    
+    <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Exception</span><span class="token punctuation">(</span>$<span class="token string">"Failed to solve CAPTCHA: {result.ErrorDescription}"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="report-incorrect-solutions">4. Report Incorrect Solutions</h3>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token comment">// If the solution didn't work</span>
+<span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token function">ReportTaskOutcomeAsync</span><span class="token punctuation">(</span>result<span class="token punctuation">.</span>TaskId<span class="token punctuation">,</span> ReportOutcome<span class="token punctuation">.</span>IncorrectRecaptcha<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// If the solution worked correctly (optional but helpful)</span>
+<span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token function">ReportTaskOutcomeAsync</span><span class="token punctuation">(</span>result<span class="token punctuation">.</span>TaskId<span class="token punctuation">,</span> ReportOutcome<span class="token punctuation">.</span>CorrectRecaptcha<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h3 id="monitor-your-balance">5. Monitor Your Balance</h3>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token keyword">var</span> balanceResponse <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token function">GetBalanceAsync</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span>balanceResponse<span class="token punctuation">.</span>Balance <span class="token operator">&lt;</span> <span class="token number">1</span><span class="token punctuation">.</span>0m<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span><span class="token string">"Warning: Low balance!"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="troubleshooting-common-issues">Troubleshooting Common Issues</h2>
+
+<table>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Possible Cause</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ERROR_NO_SLOT_AVAILABLE</td>
+<td>Anti-Captcha service is busy</td>
+<td>Implement retry logic with backoff</td>
+</tr>
+<tr>
+<td>ERROR_ZERO_BALANCE</td>
+<td>Account has no funds</td>
+<td>Add funds to your Anti-Captcha account</td>
+</tr>
+<tr>
+<td>ERROR_KEY_DOES_NOT_EXIST</td>
+<td>Invalid API key</td>
+<td>Double-check your API key</td>
+</tr>
+<tr>
+<td>ERROR_PAGEURL</td>
+<td>Invalid website URL</td>
+<td>Ensure the URL is complete and valid</td>
+</tr>
+<tr>
+<td>ERROR_SITEKEY</td>
+<td>Invalid site key</td>
+<td>Verify the site key is correct</td>
+</tr>
+<tr>
+<td>Timeout errors</td>
+<td>Slow solving or network issues</td>
+<td>Increase timeout settings in ClientConfig</td>
+</tr>
+</tbody>
+</table><h2 id="real-world-applications">Real-World Applications</h2>
+<h3 id="e-commerce-login-automation">E-commerce Login Automation</h3>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token keyword">async</span> Task<span class="token operator">&lt;</span><span class="token keyword">bool</span><span class="token operator">&gt;</span> <span class="token function">LoginToEcommerceAsync</span><span class="token punctuation">(</span><span class="token keyword">string</span> username<span class="token punctuation">,</span> <span class="token keyword">string</span> password<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    <span class="token comment">// Get the site key from the login page</span>
+    <span class="token keyword">var</span> siteKey <span class="token operator">=</span> <span class="token keyword">await</span> <span class="token function">GetSiteKeyFromLoginPage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+    <span class="token comment">// Solve the CAPTCHA</span>
+    <span class="token keyword">var</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">RecaptchaV2ProxylessRequest</span>
+    <span class="token punctuation">{</span>
+        WebsiteUrl <span class="token operator">=</span> <span class="token string">"https://example-shop.com/login"</span><span class="token punctuation">,</span>
+        WebsiteKey <span class="token operator">=</span> siteKey
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    
+    <span class="token keyword">var</span> result <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token generic-method function">SolveCaptchaAsync<span class="token punctuation">&lt;</span>RecaptchaSolution<span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>result<span class="token punctuation">.</span>IsSuccess<span class="token punctuation">)</span>
+    <span class="token punctuation">{</span>
+        <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Exception</span><span class="token punctuation">(</span>$<span class="token string">"Failed to solve CAPTCHA: {result.ErrorDescription}"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    
+    <span class="token comment">// Submit login form with CAPTCHA solution</span>
+    <span class="token keyword">using</span> <span class="token keyword">var</span> httpClient <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HttpClient</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+    <span class="token keyword">var</span> formData <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Dictionary</span><span class="token operator">&lt;</span><span class="token keyword">string</span><span class="token punctuation">,</span> <span class="token keyword">string</span><span class="token operator">&gt;</span>
+    <span class="token punctuation">{</span>
+        <span class="token punctuation">[</span><span class="token string">"username"</span><span class="token punctuation">]</span> <span class="token operator">=</span> username<span class="token punctuation">,</span>
+        <span class="token punctuation">[</span><span class="token string">"password"</span><span class="token punctuation">]</span> <span class="token operator">=</span> password<span class="token punctuation">,</span>
+        <span class="token punctuation">[</span><span class="token string">"g-recaptcha-response"</span><span class="token punctuation">]</span> <span class="token operator">=</span> result<span class="token punctuation">.</span>Solution<span class="token punctuation">.</span>GRecaptchaResponse
+    <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    
+    <span class="token keyword">var</span> content <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FormUrlEncodedContent</span><span class="token punctuation">(</span>formData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">var</span> response <span class="token operator">=</span> <span class="token keyword">await</span> httpClient<span class="token punctuation">.</span><span class="token function">PostAsync</span><span class="token punctuation">(</span><span class="token string">"https://example-shop.com/login"</span><span class="token punctuation">,</span> content<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+    <span class="token comment">// Check if login was successful</span>
+    <span class="token keyword">return</span> response<span class="token punctuation">.</span>IsSuccessStatusCode<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h3 id="data-collection">Data Collection</h3>
+<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token keyword">async</span> Task<span class="token operator">&lt;</span>List<span class="token operator">&lt;</span>Product<span class="token operator">&gt;</span><span class="token operator">&gt;</span> <span class="token function">ScrapeProductsAsync</span><span class="token punctuation">(</span><span class="token keyword">string</span> url<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+    <span class="token comment">// First, get the page content</span>
+    <span class="token keyword">using</span> <span class="token keyword">var</span> httpClient <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HttpClient</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">var</span> pageContent <span class="token operator">=</span> <span class="token keyword">await</span> httpClient<span class="token punctuation">.</span><span class="token function">GetStringAsync</span><span class="token punctuation">(</span>url<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    
+    <span class="token comment">// Check if the page has CAPTCHA</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>pageContent<span class="token punctuation">.</span><span class="token function">Contains</span><span class="token punctuation">(</span><span class="token string">"g-recaptcha"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">{</span>
+        <span class="token comment">// Extract site key</span>
+        <span class="token keyword">var</span> siteKeyMatch <span class="token operator">=</span> Regex<span class="token punctuation">.</span><span class="token function">Match</span><span class="token punctuation">(</span>pageContent<span class="token punctuation">,</span> <span class="token string">"data-sitekey=\"([^\"]+)\""</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>siteKeyMatch<span class="token punctuation">.</span>Success<span class="token punctuation">)</span>
+        <span class="token punctuation">{</span>
+            <span class="token keyword">var</span> siteKey <span class="token operator">=</span> siteKeyMatch<span class="token punctuation">.</span>Groups<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">.</span>Value<span class="token punctuation">;</span>
+            
+            <span class="token comment">// Solve the CAPTCHA</span>
+            <span class="token keyword">var</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">RecaptchaV2ProxylessRequest</span>
+            <span class="token punctuation">{</span>
+                WebsiteUrl <span class="token operator">=</span> url<span class="token punctuation">,</span>
+                WebsiteKey <span class="token operator">=</span> siteKey
+            <span class="token punctuation">}</span><span class="token punctuation">;</span>
+            
+            <span class="token keyword">var</span> result <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token generic-method function">SolveCaptchaAsync<span class="token punctuation">&lt;</span>RecaptchaSolution<span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>result<span class="token punctuation">.</span>IsSuccess<span class="token punctuation">)</span>
+            <span class="token punctuation">{</span>
+                <span class="token comment">// Submit the form with the CAPTCHA solution</span>
+                <span class="token keyword">var</span> formData <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Dictionary</span><span class="token operator">&lt;</span><span class="token keyword">string</span><span class="token punctuation">,</span> <span class="token keyword">string</span><span class="token operator">&gt;</span>
+                <span class="token punctuation">{</span>
+                    <span class="token punctuation">[</span><span class="token string">"g-recaptcha-response"</span><span class="token punctuation">]</span> <span class="token operator">=</span> result<span class="token punctuation">.</span>Solution<span class="token punctuation">.</span>GRecaptchaResponse
+                <span class="token punctuation">}</span><span class="token punctuation">;</span>
+                
+                <span class="token keyword">var</span> content <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">FormUrlEncodedContent</span><span class="token punctuation">(</span>formData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">var</span> response <span class="token operator">=</span> <span class="token keyword">await</span> httpClient<span class="token punctuation">.</span><span class="token function">PostAsync</span><span class="token punctuation">(</span>url<span class="token punctuation">,</span> content<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                
+                <span class="token comment">// Get the new page content after CAPTCHA</span>
+                pageContent <span class="token operator">=</span> <span class="token keyword">await</span> response<span class="token punctuation">.</span>Content<span class="token punctuation">.</span><span class="token function">ReadAsStringAsync</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+    
+    <span class="token comment">// Parse the products from the page content</span>
+    <span class="token keyword">var</span> products <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">List</span><span class="token operator">&lt;</span>Product<span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// ... parsing logic here</span>
+    
+    <span class="token keyword">return</span> products<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<h2 id="conclusion">Conclusion</h2>
+<p><a href="http://AntiCaptchaApi.Net">AntiCaptchaApi.Net</a> provides a powerful and flexible way to integrate CAPTCHA solving capabilities into your .NET applications. With its clean API and support for various CAPTCHA types, it can save you significant time and effort in your automation projects.</p>
+<p>Key takeaways:</p>
+<ul>
+<li>The library supports a wide range of CAPTCHA types</li>
+<li>The API is easy to use and integrate into existing projects</li>
+<li>Proper error handling and retry logic are essential</li>
+<li>Token caching can improve performance and reduce costs</li>
+<li>Reporting incorrect solutions helps improve the service</li>
+</ul>
+<p>Remember that while CAPTCHA solving services are legal to use, they should be used responsibly and ethically. Always respect website terms of service and use automation tools for legitimate purposes.</p>
+<p>The complete example code used in this article is available in the <a href="https://github.com/RemarkableSolutionsAdmin/AntiCaptchaApi.Net.Examples">AntiCaptchaApi.Net.Examples</a> repository. Feel free to explore it and adapt it to your specific needs.</p>
+<hr>
+<p><em>Disclaimer: This article is for educational purposes only. The author and publisher are not responsible for any misuse of the information provided.</em></p>
+</div>
+</body>
+
+</html>
