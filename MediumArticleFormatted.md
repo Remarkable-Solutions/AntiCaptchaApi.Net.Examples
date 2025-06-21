@@ -495,16 +495,6 @@ if (balanceResponse.Balance < 1.0m)
 }
 ```
 
-## Troubleshooting Common Issues
-
-| Issue | Possible Cause | Solution |
-|-------|----------------|----------|
-| ERROR_NO_SLOT_AVAILABLE | Anti-Captcha service is busy | Implement retry logic with backoff |
-| ERROR_ZERO_BALANCE | Account has no funds | Add funds to your Anti-Captcha account |
-| ERROR_KEY_DOES_NOT_EXIST | Invalid API key | Double-check your API key |
-| ERROR_PAGEURL | Invalid website URL | Ensure the URL is complete and valid |
-| ERROR_SITEKEY | Invalid site key | Verify the site key is correct |
-| Timeout errors | Slow solving or network issues | Increase timeout settings in ClientConfig |
 
 ## Real-World Applications
 

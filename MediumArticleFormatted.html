@@ -430,49 +430,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
     Console<span class="token punctuation">.</span><span class="token function">WriteLine</span><span class="token punctuation">(</span><span class="token string">"Warning: Low balance!"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 </code></pre>
-<h2 id="troubleshooting-common-issues">Troubleshooting Common Issues</h2>
-
-<table>
-<thead>
-<tr>
-<th>Issue</th>
-<th>Possible Cause</th>
-<th>Solution</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>ERROR_NO_SLOT_AVAILABLE</td>
-<td>Anti-Captcha service is busy</td>
-<td>Implement retry logic with backoff</td>
-</tr>
-<tr>
-<td>ERROR_ZERO_BALANCE</td>
-<td>Account has no funds</td>
-<td>Add funds to your Anti-Captcha account</td>
-</tr>
-<tr>
-<td>ERROR_KEY_DOES_NOT_EXIST</td>
-<td>Invalid API key</td>
-<td>Double-check your API key</td>
-</tr>
-<tr>
-<td>ERROR_PAGEURL</td>
-<td>Invalid website URL</td>
-<td>Ensure the URL is complete and valid</td>
-</tr>
-<tr>
-<td>ERROR_SITEKEY</td>
-<td>Invalid site key</td>
-<td>Verify the site key is correct</td>
-</tr>
-<tr>
-<td>Timeout errors</td>
-<td>Slow solving or network issues</td>
-<td>Increase timeout settings in ClientConfig</td>
-</tr>
-</tbody>
-</table><h2 id="real-world-applications">Real-World Applications</h2>
+<h2 id="real-world-applications">Real-World Applications</h2>
 <h3 id="e-commerce-login-automation">E-commerce Login Automation</h3>
 <pre class=" language-csharp"><code class="prism  language-csharp"><span class="token keyword">async</span> Task<span class="token operator">&lt;</span><span class="token keyword">bool</span><span class="token operator">&gt;</span> <span class="token function">LoginToEcommerceAsync</span><span class="token punctuation">(</span><span class="token keyword">string</span> username<span class="token punctuation">,</span> <span class="token keyword">string</span> password<span class="token punctuation">)</span>
 <span class="token punctuation">{</span>
