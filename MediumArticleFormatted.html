@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome file</title>
+  <title>MediumArticleFormatted.md</title>
   <link rel="stylesheet" href="https://stackedit.io/style.css" />
 </head>
 
@@ -17,53 +17,15 @@
 <h2 id="understanding-captchas">Understanding CAPTCHAs</h2>
 <p>Before diving into the code, let’s understand what we’re dealing with:</p>
 <h3 id="common-captcha-types">Common CAPTCHA Types</h3>
-
-<table>
-<thead>
-<tr>
-<th>CAPTCHA Type</th>
-<th>Description</th>
-<th>Difficulty Level</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Text-based</td>
-<td>Distorted text that users must type</td>
-<td>Low to Medium</td>
-</tr>
-<tr>
-<td>Image-based</td>
-<td>Identifying objects in images</td>
-<td>Medium</td>
-</tr>
-<tr>
-<td>reCAPTCHA v2</td>
-<td>“I’m not a robot” checkbox with potential image challenges</td>
-<td>Medium</td>
-</tr>
-<tr>
-<td>reCAPTCHA v3</td>
-<td>Invisible, score-based assessment</td>
-<td>High</td>
-</tr>
-<tr>
-<td>hCaptcha</td>
-<td>Similar to reCAPTCHA with various challenges</td>
-<td>Medium to High</td>
-</tr>
-<tr>
-<td>FunCaptcha</td>
-<td>Interactive puzzle-based challenges</td>
-<td>High</td>
-</tr>
-<tr>
-<td>GeeTest</td>
-<td>Slider puzzles and other interactive challenges</td>
-<td>High</td>
-</tr>
-</tbody>
-</table><p>Anti-Captcha and similar services employ a combination of machine learning algorithms and human workers to solve these challenges, ensuring high accuracy while maintaining reasonable solving times.</p>
+<ul>
+<li><strong>Text-based:</strong> Distorted text that users must type (Low to Medium difficulty)</li>
+<li><strong>Image-based:</strong> Identifying objects in images (Medium difficulty)</li>
+<li><strong>reCAPTCHA v2:</strong> “I’m not a robot” checkbox with potential image challenges (Medium difficulty)</li>
+<li><strong>reCAPTCHA v3:</strong> Invisible, score-based assessment (High difficulty)</li>
+<li><strong>FunCaptcha:</strong> Interactive puzzle-based challenges (High difficulty)</li>
+<li><strong>GeeTest:</strong> Slider puzzles and other interactive challenges (High difficulty)</li>
+</ul>
+<p>Anti-Captcha and similar services employ a combination of machine learning algorithms and human workers to solve these challenges, ensuring high accuracy while maintaining reasonable solving times.</p>
 <h2 id="getting-started-with-anticaptchaapi.net">Getting Started with <a href="http://AntiCaptchaApi.Net">AntiCaptchaApi.Net</a></h2>
 <h3 id="prerequisites">Prerequisites</h3>
 <p>Before we begin, you’ll need:</p>
@@ -298,15 +260,6 @@ Console<span class="token punctuation">.</span><span class="token function">Writ
 <span class="token punctuation">}</span><span class="token punctuation">;</span>
 
 <span class="token keyword">var</span> result <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token generic-method function">SolveCaptchaAsync<span class="token punctuation">&lt;</span>FunCaptchaSolution<span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
-</code></pre>
-<h3 id="hcaptcha">hCaptcha</h3>
-<pre class=" language-csharp"><code class="prism  language-csharp"><span class="token keyword">var</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HCaptchaProxylessRequest</span>
-<span class="token punctuation">{</span>
-    WebsiteUrl <span class="token operator">=</span> <span class="token string">"https://example.com"</span><span class="token punctuation">,</span>
-    WebsiteKey <span class="token operator">=</span> <span class="token string">"your-site-key"</span>
-<span class="token punctuation">}</span><span class="token punctuation">;</span>
-
-<span class="token keyword">var</span> result <span class="token operator">=</span> <span class="token keyword">await</span> client<span class="token punctuation">.</span><span class="token generic-method function">SolveCaptchaAsync<span class="token punctuation">&lt;</span>HCaptchaSolution<span class="token punctuation">&gt;</span></span><span class="token punctuation">(</span>request<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 <h3 id="geetest">GeeTest</h3>
 <pre class=" language-csharp"><code class="prism  language-csharp"><span class="token keyword">var</span> request <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">GeeTestV3ProxylessRequest</span>
